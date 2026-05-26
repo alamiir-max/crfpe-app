@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#006633">
+<title>CRFPE Dakar V4</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --vert: #006633; --jaune: #FDEF42; --rouge: #CE1126;
+  --bg: #f2f4f7; --card: #ffffff; --text: #1a1a2e; --gray: #777; --lg: #e8e8e8;
+}
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); padding-bottom: 70px; }
+
+/* LAYOUT */
+header { background: var(--vert); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+header h1 { font-size: 16px; letter-spacing: 0.5px; }
+.section { display: none; padding: 15px; animation: fade 0.3s; }
+.section.active { display: block; }
+@keyframes fade { from{opacity:0} to{opacity:1} }
+
+/* NAV */
+nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--lg); z-index: 200; }
+.nav-item { border: none; background: none; color: var(--gray); font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; min-width: 50px; }
+.nav-item svg { width: 20px; height: 20px; fill: currentColor; }
+.nav-item.active { color: var(--vert); font-weight: bold; }
+
+/* FORMS & MODALS */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 20px; padding: 25px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-size: 20px; margin-bottom: 15px; text-align: center; color: var(--vert); }
+.inp { width: 100%; padding: 12px; border: 1.5px solid var(--lg); border-radius: 10px; font-size: 14px; margin-bottom: 10px; outline: none; }
+.inp:focus { border-color: var(--vert); }
+select.inp { appearance: none; background: white; cursor: pointer; }
+
+/* CARDS */
+.card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02); }
+.card h3 { font-size: 15px; color: var(--vert); margin-bottom: 8px; }
+.card p { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+/* BUTTONS */
+.btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; text-decoration: none; margin-bottom: 10px; }
+.btn-p { background: var(--vert); color: white; }
+.btn-o { background: none; border: 1.5px solid var(--vert); color: var(--vert); }
+.btn-r { background: var(--rouge); color: white; }
+.btn-wa { background: #25D366; color: white; }
+
+/* BADGES */
+.tag { font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: inline-block; margin: 2px; }
+.tag-vert { background: #e8f5e9; color: #2e7d32; }
+.tag-rouge { background: #ffebee; color: #c62828; }
+.tag-jaune { background: #fff8e1; color: #f57f17; }
+.role-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px; }
+
+/* CHAT */
+.chat-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+.msg { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 13px; position: relative; }
+.msg-mine { align-self: flex-end; background: var(--vert); color: white; border-bottom-right-radius: 2px; }
+.msg-other { align-self: flex-start; background: #e8e8e8; border-bottom-left-radius: 2px; }
+.msg-info { font-size: 10px; opacity: 0.7; margin-bottom: 3px; display: block; }
+.chat-bar { display: flex; gap: 8px; }
+.chat-bar input { flex: 1; border: 1px solid var(--lg); border-radius: 25px; padding: 10px 15px; font-size: 14px; outline: none; }
+.chat-bar button { background: var(--vert); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+
+/* TABS */
+.tab-row { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+.tab-btn { white-space: nowrap; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--lg); background: white; font-size: 12px; font-weight: 600; color: var(--gray); cursor: pointer; }
+.tab-btn.active { background: var(--vert); color: white; border-color: var(--vert); }
+
+/* SPLASH */
+.splash { position: fixed; inset: 0; background: var(--vert); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; transition: opacity 0.5s; }
+.splash.hidden { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="splash" id="splash">
+  <div style="font-size: 50px;">🇸🇳</div>
+  <h1 style="margin-top: 15px;">CRFPE Dakar</h1>
+  <p style="opacity: 0.8;">Espace Numérique des Maîtres</p>
+</div>
+
+<!-- INSCRIPTION MODAL -->
+<div class="modal-overlay" id="modal-auth">
+  <div class="modal">
+    <h2>📝 Inscription</h2>
+    <p style="font-size:12px; color:var(--gray); text-align:center; margin-bottom:15px;">Remplis tes infos pour accéder au CRFPE.</p>
+    <input class="inp" id="reg-prenom" placeholder="Prénom">
+    <input class="inp" id="reg-nom" placeholder="Nom">
+    <input class="inp" id="reg-email" type="email" placeholder="Email">
+    <input class="inp" id="reg-wa" type="tel" placeholder="Numéro WhatsApp (ex: 77...)">
+    
+    <p style="font-size:12px; margin:10px 0 5px;">Rôle :</p>
+    <select class="inp" id="reg-role">
+      <option value="eleve">Élève-Maître</option>
+      <option value="prof">Professeur-Formateur</option>
+    </select>
+    
+    <p style="font-size:12px; margin:10px 0 5px;">Option :</p>
+    <select class="inp" id="reg-opt">
+      <option value="français">Français</option>
+      <option value="arabe">Arabe</option>
+      <option value="anglais">Anglais</option>
+    </select>
+    
+    <button class="btn btn-p" onclick="register()">✅ S'inscrire</button>
+    <button class="btn btn-o" onclick="openDirecteurLogin()" style="font-size:11px; padding:8px;">Connexion Directeur</button>
+  </div>
+</div>
+
+<!-- DIRECTEUR LOGIN MODAL -->
+<div class="modal-overlay" id="modal-director">
+  <div class="modal">
+    <h2>🔐 Accès Directeur</h2>
+    <input class="inp" id="dir-pw" type="password" placeholder="Mot de passe">
+    <button class="btn btn-p" onclick="directorLogin()">🔑 Se connecter</button>
+    <button class="btn btn-o" onclick="closeDirectorLogin()">Retour</button>
+  </div>
+</div>
+
+<header>
+  <h1>🇸🇳 CRFPE DAKAR</h1>
+  <div style="font-size:10px; opacity:0.8; margin-top:2px;" id="header-user">Chargement...</div>
+</header>
+
+<!-- PAGES -->
+
+<!-- ACCUEIL -->
+<div class="section active" id="page-accueil">
+  <div class="card" style="background: linear-gradient(135deg, var(--vert), #004d26); color:white;">
+    <h2 id="home-welcome">Bienvenue !</h2>
+    <p id="home-role" style="color:white; opacity:0.9; margin-top:5px;">Rôle : —</p>
+  </div>
+  
+  <div class="card">
+    <h3>📢 Informations Communes</h3>
+    <p id="last-announcement">Bienvenue dans l'application officielle du CRFPE Dakar.</p>
+  </div>
+  
+  <div class="card">
+    <h3>🔗 Liens rapides</h3>
+    <button class="btn btn-o" onclick="nav('cours')">Ma Bibliothèque</button>
+    <button class="btn btn-o" onclick="nav('chat')">Mes Groupes de Chat</button>
+  </div>
+
+  <div style="text-align:center; padding:10px;">
+    <button class="btn btn-o" onclick="logout()" style="color:var(--rouge); border-color:var(--rouge); font-size:12px; width:auto; padding:8px 20px;">Déconnexion</button>
+  </div>
+</div>
+
+<!-- COURS / BIBLIOTHEQUE -->
+<div class="section" id="page-cours">
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-cours-commun" onclick="setSubTab('cours','commun')">Cours Communs</button>
+    <button class="tab-btn" id="tab-cours-option" onclick="setSubTab('cours','option')">Mon Option</button>
+    <button class="tab-btn" id="tab-cours-validation" onclick="setSubTab('cours','validation')" style="display:none;">Validation (Admin)</button>
+  </div>
+  
+  <div id="list-cours"></div>
+  
+  <button class="btn btn-p" onclick="showAddCoursForm()" style="margin-top:10px;">➕ Partager un document</button>
+  <div id="form-cours" style="display:none; margin-top:10px;" class="card">
+    <input class="inp" id="c-titre" placeholder="Titre du document">
+    <select class="inp" id="c-type">
+      <option value="commun">Cours Commun (Tout le CRFPE)</option>
+      <option value="option">Mon Option Uniquement</option>
+    </select>
+    <textarea class="inp" id="c-desc" placeholder="Description courte..."></textarea>
+    <button class="btn btn-p" onclick="submitCours()">✅ Envoyer</button>
+    <button class="btn btn-o" onclick="hideAddCoursForm()">Annuler</button>
+  </div>
+</div>
+
+<!-- CHAT / DISCUSSIONS -->
+<div class="section" id="page-chat">
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-chat-commun" onclick="setSubTab('chat','commun')">Général (CRFPE)</button>
+    <button class="tab-btn" id="tab-chat-option" onclick="setSubTab('chat','option')">Option</button>
+    <button class="tab-btn" id="tab-chat-profs" onclick="setSubTab('chat','profs')" style="display:none;">Profs</button>
+  </div>
+  
+  <div class="chat-container" id="chat-msgs" style="min-height:300px; max-height:450px; overflow-y:auto; background:white; padding:10px; border-radius:15px;"></div>
+  
+  <div class="chat-bar">
+    <input id="chat-input" placeholder="Message..." onkeypress="if(event.key==='Enter') sendMsg()">
+    <button onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<!-- MEMBRES / ANNUAIRE -->
+<div class="section" id="page-membres">
+  <h3>👥 Annuaire du CRFPE</h3>
+  <input class="inp" id="search-m" placeholder="Rechercher un nom..." style="margin-top:10px;" oninput="renderMembres()">
+  <div id="list-membres"></div>
+</div>
+
+<!-- NAV BAR -->
+<nav>
+  <button class="nav-item active" onclick="nav('accueil')">
+    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Accueil
+  </button>
+  <button class="nav-item" onclick="nav('cours')">
+    <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>Biblio
+  </button>
+  <button class="nav-item" onclick="nav('chat')">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>Chat
+  </button>
+  <button class="nav-item" onclick="nav('membres')">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>CRFPE
+  </button>
+</nav>
+
+<script>
+// ============================================================
+// DATA MANAGEMENT
+// ============================================================
+const APP_ID = 'crfpe_v4_';
+const g = (k, d) => { try { return JSON.parse(localStorage.getItem(APP_ID+k)) || d; } catch { return d; } };
+const s = (k, v) => localStorage.setItem(APP_ID+k, JSON.stringify(v));
+
+let user = g('user', null); // { pren, nom, email, wa, role, opt }
+let users = g('users', [
+  { pren:'Directeur', nom:'', email:'dir@crfpe.sn', wa:'770000000', role:'dir', opt:'all' },
+  { pren:'Fatou', nom:'Diallo', email:'fatou@test.sn', wa:'771234567', role:'prof', opt:'français' },
+  { pren:'Ibrahima', nom:'Sow', email:'ib@test.sn', wa:'761112233', role:'eleve', opt:'arabe' }
+]);
+let cours = g('cours', [
+  { id:1, tit:'Règlement Intérieur CRFPE', type:'commun', desc:'Document officiel à lire par tous.', aut:'Directeur', status:'val' },
+  { id:2, tit:'Didactique du Français', type:'option', opt:'français', desc:'Module 1 pour les profs.', aut:'Fatou Diallo', status:'val' }
+]);
+let chats = g('chats', {
+  commun: [{ u:'Directeur', t:'Bienvenue dans le groupe général du CRFPE !', d:Date.now() }],
+  français: [{ u:'Fatou D.', t:'Bonjour les élèves-maîtres en Français.', d:Date.now() }],
+  arabe: [], anglais: [], profs: [{ u:'Directeur', t:'Espace réservé aux formateurs.', d:Date.now() }]
+});
+
+let currentSubTab = { cours: 'commun', chat: 'commun' };
+
+// ============================================================
+// AUTH
+// ============================================================
+function register() {
+  const p = document.getElementById('reg-prenom').value.trim();
+  const n = document.getElementById('reg-nom').value.trim();
+  const e = document.getElementById('reg-email').value.trim();
+  const w = document.getElementById('reg-wa').value.trim();
+  const r = document.getElementById('reg-role').value;
+  const o = document.getElementById('reg-opt').value;
+
+  if(!p || !n || !e || !w) { alert('Merci de remplir tous les champs.'); return; }
+  
+  user = { pren: p, nom: n, email: e, wa: w, role: r, opt: o };
+  users.push(user);
+  s('user', user);
+  s('users', users);
+  
+  document.getElementById('modal-auth').classList.remove('show');
+  initApp();
+}
+
+function directorLogin() {
+  const pw = document.getElementById('dir-pw').value;
+  if(pw === 'directeur221') {
+    user = users.find(u => u.role === 'dir');
+    s('user', user);
+    document.getElementById('modal-director').classList.remove('show');
+    document.getElementById('modal-auth').classList.remove('show');
+    initApp();
+  } else {
+    alert('Code incorrect.');
+  }
+}
+
+function openDirecteurLogin() { document.getElementById('modal-director').classList.add('show'); }
+function closeDirectorLogin() { document.getElementById('modal-director').classList.remove('show'); }
+
+function logout() {
+  s('user', null);
+  location.reload();
+}
+
+// ============================================================
+// NAVIGATION & TABS
+// ============================================================
+function nav(p) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelector(`.nav-item[onclick="nav('${p}')"]`).classList.add('active');
+  renderPage(p);
+}
+
+function setSubTab(page, tab) {
+  currentSubTab[page] = tab;
+  document.querySelectorAll(`#page-${page} .tab-btn`).forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${page}-${tab}`).classList.add('active');
+  renderPage(page);
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+function initApp() {
+  if(!user) {
+    document.getElementById('modal-auth').classList.add('show');
+    return;
+  }
+  document.getElementById('splash').classList.add('hidden');
+  document.getElementById('header-user').textContent = `${user.pren} ${user.nom} | ${user.role==='dir'?'Directeur':user.role==='prof'?'Prof':'Élève'} | ${user.opt}`;
+  
+  // UI according to role
+  if(user.role === 'dir') {
+    document.getElementById('tab-cours-validation').style.display = 'block';
+    document.getElementById('tab-chat-profs').style.display = 'block';
+  } else if(user.role === 'prof') {
+    document.getElementById('tab-chat-profs').style.display = 'block';
+  }
+  
+  nav('accueil');
+}
+
+function renderPage(p) {
+  if(p === 'accueil') {
+    document.getElementById('home-welcome').textContent = `Bonjour, ${user.pren} !`;
+    document.getElementById('home-role').textContent = `Profil : ${user.role==='dir'?'Directeur':user.role==='prof'?'Professeur-Formateur':'Élève-Maître'} | Option : ${user.opt}`;
+  }
+  if(p === 'cours') renderCours();
+  if(p === 'chat') renderChat();
+  if(p === 'membres') renderMembres();
+}
+
+function renderCours() {
+  const container = document.getElementById('list-cours');
+  let filtered = [];
+  const tab = currentSubTab.cours;
+  
+  if(tab === 'commun') {
+    filtered = cours.filter(c => c.type === 'commun' && c.status === 'val');
+  } else if(tab === 'option') {
+    filtered = cours.filter(c => c.type === 'option' && c.opt === user.opt && c.status === 'val');
+  } else if(tab === 'validation') {
+    filtered = cours.filter(c => c.status === 'attente');
+  }
+
+  if(filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--gray); font-size:13px;">Aucun document ici.</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(c => `
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:start;">
+        <h3>${c.tit}</h3>
+        <span class="tag ${c.status==='val'?'tag-vert':'tag-jaune'}">${c.status==='val'?'Approuvé':'En attente'}</span>
+      </div>
+      <p>${c.desc}</p>
+      <div style="margin-top:10px; font-size:10px; color:var(--gray);">
+        👤 ${c.aut} | 📂 ${c.type==='commun'?'Commun':c.opt}
+      </div>
+      ${tab==='validation' ? `
+        <div style="display:flex; gap:10px; margin-top:10px;">
+          <button class="btn btn-p" onclick="validerCours(${c.id})" style="padding:8px; margin:0;">Valider</button>
+          <button class="btn btn-r" onclick="supprimerCours(${c.id})" style="padding:8px; margin:0;">Refuser</button>
+        </div>
+      ` : `<button class="btn btn-o" style="padding:6px; margin-top:10px; font-size:11px;">Ouvrir / Télécharger</button>`}
+    </div>
+  `).join('');
+}
+
+function renderChat() {
+  const tab = currentSubTab.chat;
+  const container = document.getElementById('chat-msgs');
+  let key = tab === 'commun' ? 'commun' : tab === 'profs' ? 'profs' : user.opt;
+  let msgs = chats[key] || [];
+
+  container.innerHTML = msgs.map(m => `
+    <div class="msg ${m.u === user.pren+' '+user.nom || m.u === user.pren ? 'msg-mine' : 'msg-other'}">
+      <span class="msg-info">${m.u} • ${new Date(m.d).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+      ${m.t}
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function renderMembres() {
+  const q = document.getElementById('search-m').value.toLowerCase();
+  const container = document.getElementById('list-membres');
+  const filtered = users.filter(u => (u.pren+' '+u.nom).toLowerCase().includes(q));
+
+  container.innerHTML = filtered.map(u => `
+    <div class="card" style="display:flex; align-items:center; gap:12px; padding:10px;">
+      <div style="width:40px; height:40px; border-radius:50%; background:var(--vert); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold;">${u.pren[0]}</div>
+      <div style="flex:1;">
+        <h4 style="font-size:14px;">${u.pren} ${u.nom} <span class="role-tag ${u.role==='prof'?'tag-jaune':'tag-vert'}">${u.role==='prof'?'Prof':'Élève'}</span></h4>
+        <p style="font-size:11px;">Option : ${u.opt}</p>
+      </div>
+      <a href="https://wa.me/221${u.wa}" target="_blank" style="color:#25D366;">
+        <svg style="width:24px; height:24px; fill:currentColor;" viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.81 9.81 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.22 8.22 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23-1.48 0-2.93-.39-4.19-1.15l-.3-.17-3.12.82.83-3.04-.19-.3a8.232 8.232 0 0 1-1.26-4.38c.01-4.54 3.7-8.24 8.24-8.24zm-3.11 3.73c-.17 0-.45.07-.68.32-.23.25-.89.87-.89 2.13 0 1.27.92 2.49 1.05 2.67.13.17 1.81 2.76 4.38 3.87.61.26 1.09.42 1.46.54.61.2 1.17.17 1.61.1.49-.07 1.51-.62 1.72-1.21.21-.59.21-1.09.14-1.21-.07-.12-.25-.19-.52-.33-.27-.14-1.51-.74-1.74-.83-.23-.09-.4-.14-.58.13-.18.27-.69.87-.84 1.05-.15.18-.3.2-.57.06-.27-.14-1.13-.42-2.16-1.34-.8-.71-1.33-1.59-1.49-1.86-.16-.27-.02-.42.12-.55.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.33-.02-.48-.07-.14-.58-1.4-.8-1.92-.22-.52-.46-.44-.63-.44z"/></svg>
+      </a>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function showAddCoursForm() { document.getElementById('form-cours').style.display = 'block'; }
+function hideAddCoursForm() { document.getElementById('form-cours').style.display = 'none'; }
+
+function submitCours() {
+  const tit = document.getElementById('c-titre').value;
+  const typ = document.getElementById('c-type').value;
+  const desc = document.getElementById('c-desc').value;
+  
+  if(!tit || !desc) return;
+  
+  // Profs and Director are validated instantly
+  const st = (user.role === 'prof' || user.role === 'dir') ? 'val' : 'attente';
+  
+  cours.push({ id:Date.now(), tit, type:typ, opt:user.opt, desc, aut:user.pren+' '+user.nom, status:st });
+  s('cours', cours);
+  
+  document.getElementById('c-titre').value = '';
+  document.getElementById('c-desc').value = '';
+  hideAddCoursForm();
+  renderCours();
+  if(st === 'attente') alert('Document envoyé pour validation au Directeur.');
+}
+
+function sendMsg() {
+  const inp = document.getElementById('chat-input');
+  const t = inp.value.trim();
+  if(!t) return;
+  
+  const tab = currentSubTab.chat;
+  let key = tab === 'commun' ? 'commun' : tab === 'profs' ? 'profs' : user.opt;
+  
+  chats[key].push({ u:user.pren+' '+user.nom, t, d:Date.now() });
+  s('chats', chats);
+  
+  inp.value = '';
+  renderChat();
+}
+
+function validerCours(id) {
+  const c = cours.find(x => x.id === id);
+  if(c) c.status = 'val';
+  s('cours', cours);
+  renderCours();
+}
+
+function supprimerCours(id) {
+  cours = cours.filter(x => x.id !== id);
+  s('cours', cours);
+  renderCours();
+}
+
+// START
+initApp();
+</script>
+</body>
+</html>
